@@ -2,7 +2,9 @@ import predictive_coding as pc
 import torch
 
 
-def create_model(predictive_coding, acf, model_type_order, cnn_layers, linear_layers, loss_fn=''):
+def create_model(
+    predictive_coding, acf, model_type_order, cnn_layers, linear_layers, loss_fn=""
+):
 
     model_type_order = eval(model_type_order)
 
@@ -10,43 +12,36 @@ def create_model(predictive_coding, acf, model_type_order, cnn_layers, linear_la
 
     for cnn_key, cnn_layer in cnn_layers.items():
         for model_type in model_type_order:
-            if model_type == 'Weights':
-                model_ = eval(cnn_layer['fn'])(
-                    **cnn_layer['kwargs']
-                )
-            elif model_type == 'Acf':
+            if model_type == "Weights":
+                model_ = eval(cnn_layer["fn"])(**cnn_layer["kwargs"])
+            elif model_type == "Acf":
                 model_ = eval(acf)()
-            elif model_type == 'PCLayer':
+            elif model_type == "PCLayer":
                 model_ = pc.PCLayer()
-            elif model_type == 'Pool':
-                model_ = torch.nn.MaxPool2d(
-                    kernel_size=2, stride=2, padding=0
-                )
+            elif model_type == "Pool":
+                if cnn_key != "cnn_2":
+                    model_ = torch.nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
             else:
-                raise ValueError('model_type not found')
+                raise ValueError("model_type not found")
             model.append(model_)
 
     model.append(torch.nn.Flatten())
 
     for linear_key, linear_layer in linear_layers.items():
-        if linear_key == 'last':
-            model_ = eval(linear_layer['fn'])(
-                **linear_layer['kwargs']
-            )
+        if linear_key == "last":
+            model_ = eval(linear_layer["fn"])(**linear_layer["kwargs"])
             model.append(model_)
         else:
             for model_type in model_type_order:
-                if model_type == 'Weights':
-                    model_ = eval(linear_layer['fn'])(
-                        **linear_layer['kwargs']
-                    )
-                elif model_type == 'Acf':
+                if model_type == "Weights":
+                    model_ = eval(linear_layer["fn"])(**linear_layer["kwargs"])
+                elif model_type == "Acf":
                     model_ = eval(acf)()
-                elif model_type == 'PCLayer':
+                elif model_type == "PCLayer":
                     model_ = pc.PCLayer()
                 model.append(model_)
 
-    if loss_fn == 'cross_entropy':
+    if loss_fn == "cross_entropy":
         model.append(torch.nn.Softmax())
 
     # decide pc_layer
