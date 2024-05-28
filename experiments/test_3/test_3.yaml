@@ -182,54 +182,12 @@ config:
                   kernel_size: 2
                   stride: 2
                   padding: 0
-          cnn_6:
-              fn: "torch.nn.Conv2d"
-              kwargs:
-                  in_channels: 64
-                  out_channels: 128
-                  kernel_size: 3
-                  stride: 1
-                  padding: 1  # 'same' padding in Keras
-                  bias: False
-          cnn_7:
-              fn: "torch.nn.BatchNorm2d"
-              kwargs:
-                  num_features: 128
-          cnn_8:
-              fn: "torch.nn.MaxPool2d"
-              kwargs:
-                  kernel_size: 2
-                  stride: 2
-                  padding: 0
-          cnn_9:
-              fn: "torch.nn.Conv2d"
-              kwargs:
-                  in_channels: 128
-                  out_channels: 64
-                  kernel_size: 3
-                  stride: 1
-                  padding: 0  # No padding specified, equivalent to 'valid' in Keras
-                  bias: False
-          cnn_10:
-              fn: "torch.nn.BatchNorm2d"
-              kwargs:
-                  num_features: 64
-          cnn_11:
-              fn: "torch.nn.MaxPool2d"
-              kwargs:
-                  kernel_size: 4
-                  stride: 4
-                  padding: 0
-          cnn_12:
-              fn: "torch.nn.Dropout"
-              kwargs:
-                  p: 0.2
         linear_layers:
           linear_0:
               fn: "torch.nn.Linear"
               kwargs:
                   in_features: 64  # This needs to be calculated based on the output size of the last conv layer
-                  out_features: 200
+                  out_features: 32
                   bias: True
           dropout_0:
               fn: "torch.nn.Dropout"
@@ -238,7 +196,7 @@ config:
           last:
               fn: "torch.nn.Linear"
               kwargs:
-                  in_features: 200
+                  in_features: 32
                   out_features: 10
                   bias: True
 
