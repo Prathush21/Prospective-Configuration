@@ -36,7 +36,7 @@ config:
 
   dataset: CIFAR10
 
-  partial_num: 5000
+  partial_num: 100
   # debug
   # partial_num: 100
 
@@ -143,80 +143,52 @@ config:
     plot_progress_at: "np.arange(0,64*600*10,6000).tolist()"
 
   model:
-        acf: "torch.nn.ReLU"
-        model_type_order: "['Weights', 'PCLayer', 'Acf']"
-        cnn_layers:
-          cnn_0:
-              fn: "torch.nn.Conv2d"
-              kwargs:
-                  in_channels: 3
-                  out_channels: 32
-                  kernel_size: 3
-                  stride: 1
-                  padding: 0  # No padding specified, equivalent to 'valid' in Keras
-                  bias: False
-          cnn_1:
-              fn: "torch.nn.Conv2d"
-              kwargs:
-                  in_channels: 32
-                  out_channels: 64
-                  kernel_size: 3
-                  stride: 1
-                  padding: 0  # No padding specified, equivalent to 'valid' in Keras
-                  bias: False
-          cnn_2:
-              fn: "torch.nn.Conv2d"
-              kwargs:
-                  in_channels: 64
-                  out_channels: 128
-                  kernel_size: 3
-                  stride: 1
-                  padding: 0  # No padding specified, equivalent to 'valid' in Keras
-                  bias: False
-          cnn_3:
-              fn: "torch.nn.Conv2d"
-              kwargs:
-                  in_channels: 128
-                  out_channels: 256
-                  kernel_size: 3
-                  stride: 1
-                  padding: 0  # No padding specified, equivalent to 'valid' in Keras
-                  bias: False    
-          cnn_4:
-              fn: "torch.nn.Conv2d"
-              kwargs:
-                  in_channels: 256
-                  out_channels: 128
-                  kernel_size: 3
-                  stride: 1
-                  padding: 0  # No padding specified, equivalent to 'valid' in Keras
-                  bias: False                                  
-          cnn_5:
-              fn: "torch.nn.Conv2d"
-              kwargs:
-                  in_channels: 128
-                  out_channels: 64
-                  kernel_size: 3
-                  stride: 1
-                  padding: 0  # No padding specified, equivalent to 'valid' in Keras
-                  bias: False
-        linear_layers:
-          linear_0:
-              fn: "torch.nn.Linear"
-              kwargs:
-                  in_features: 576  # This needs to be calculated based on the output size of the last conv layer
-                  out_features: 32
-                  bias: True
-          dropout_0:
-              fn: "torch.nn.Dropout"
-              kwargs:
-                  p: 0.1
-          last:
-              fn: "torch.nn.Linear"
-              kwargs:
-                  in_features: 32
-                  out_features: 10
-                  bias: True
+    acf: "torch.nn.ReLU"
+    model_type_order: "['Weights', 'PCLayer', 'Acf', 'Pool']"
+    cnn_layers:
+      cnn_0:
+        fn: "torch.nn.Conv2d"
+        kwargs:
+          in_channels: 3
+          out_channels: 32
+          kernel_size: 3
+          stride: 1
+          padding: 0
+          bias: True
+
+      cnn_1:
+        fn: "torch.nn.Conv2d"
+        kwargs:
+          in_channels: 32
+          out_channels: 64
+          kernel_size: 3
+          stride: 1
+          padding: 0
+          bias: True
+
+      cnn_2:
+        fn: "torch.nn.Conv2d"
+        kwargs:
+          in_channels: 64
+          out_channels: 64
+          kernel_size: 3
+          stride: 1
+          padding: 0
+          bias: True
+
+    linear_layers:
+      linear_0:
+        fn: "torch.nn.Linear"
+        kwargs:
+          in_features: 1024 # 64 channels * 4 * 4 from the flattened output
+          out_features: 64
+          bias: True
+      last:
+        fn: "torch.nn.Linear"
+        kwargs:
+          in_features: 64
+          out_features: 10
+          bias: True
 
     # init_fn: 'torch.nn.init.xavier_normal_'
     # init_fn_kwarg:
