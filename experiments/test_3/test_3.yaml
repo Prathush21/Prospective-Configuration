@@ -179,8 +179,8 @@ config:
           cnn_5:
               fn: "torch.nn.MaxPool2d"
               kwargs:
-                  kernel_size: 2
-                  stride: 2
+                  kernel_size: 5
+                  stride: 3
                   padding: 0
         linear_layers:
           linear_0:
