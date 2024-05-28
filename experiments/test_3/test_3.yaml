@@ -156,14 +156,6 @@ config:
                   padding: 0  # No padding specified, equivalent to 'valid' in Keras
                   bias: False
           cnn_1:
-              fn: "torch.nn.BatchNorm2d"
-              kwargs:
-                  num_features: 32
-          cnn_2:
-              fn: "torch.nn.Dropout"
-              kwargs:
-                  p: 0.2
-          cnn_3:
               fn: "torch.nn.Conv2d"
               kwargs:
                   in_channels: 32
@@ -172,16 +164,42 @@ config:
                   stride: 1
                   padding: 0  # No padding specified, equivalent to 'valid' in Keras
                   bias: False
+          cnn_2:
+              fn: "torch.nn.Conv2d"
+              kwargs:
+                  in_channels: 64
+                  out_channels: 128
+                  kernel_size: 3
+                  stride: 1
+                  padding: 0  # No padding specified, equivalent to 'valid' in Keras
+                  bias: False
+          cnn_3:
+              fn: "torch.nn.Conv2d"
+              kwargs:
+                  in_channels: 128
+                  out_channels: 256
+                  kernel_size: 3
+                  stride: 1
+                  padding: 0  # No padding specified, equivalent to 'valid' in Keras
+                  bias: False    
           cnn_4:
-              fn: "torch.nn.BatchNorm2d"
+              fn: "torch.nn.Conv2d"
               kwargs:
-                  num_features: 64
+                  in_channels: 256
+                  out_channels: 128
+                  kernel_size: 3
+                  stride: 1
+                  padding: 0  # No padding specified, equivalent to 'valid' in Keras
+                  bias: False                                  
           cnn_5:
-              fn: "torch.nn.MaxPool2d"
+              fn: "torch.nn.Conv2d"
               kwargs:
-                  kernel_size: 5
-                  stride: 9
-                  padding: 0
+                  in_channels: 128
+                  out_channels: 64
+                  kernel_size: 3
+                  stride: 1
+                  padding: 0  # No padding specified, equivalent to 'valid' in Keras
+                  bias: False
         linear_layers:
           linear_0:
               fn: "torch.nn.Linear"
