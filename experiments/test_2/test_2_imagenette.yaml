@@ -56,17 +56,17 @@ config:
             )
         )
 
+
         return DataLoader(
             dataset_utils.partial_dateset(
-                eval(
-                    'datasets.{}'.format(dataset)
-                )(
-                    '/content/drive/MyDrive/advanced_ai_project/RESULTS_DIR',
-                    train=train,
-                    download=False,
-                    transform=transforms.Compose(transform),
-                    target_transform=transforms.Compose(target_transform)
-                ),
+            datasets.Imagenette(
+            root=f'/content/drive/MyDrive/advanced_ai_project/RESULTS_DIR/imagenette2', 
+            split=f'{"train" if train else "val"}', 
+            # train=True,
+            download=False, 
+            transform=transforms.Compose(transform),
+            target_transform=transforms.Compose(target_transform)
+    ),
                 partial_num=partial_num,
             ),
             batch_size=batch_size,

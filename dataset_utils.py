@@ -90,7 +90,7 @@ def pre_dataset(dataset):
     elif type(dataset) in [datasets.Imagenette]:
         data = []
         targets = []
-        for path, target in dataset.samples:
+        for path, target in dataset._samples:
             image = Image.open(path).convert("RGB")
             image = dataset.transform(image)
             data.append(image)

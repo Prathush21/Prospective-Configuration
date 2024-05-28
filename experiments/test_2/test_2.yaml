@@ -36,7 +36,7 @@ config:
 
   dataset: CIFAR10
 
-  partial_num: 5000
+  partial_num: 100
   # debug
   # partial_num: 100
 
