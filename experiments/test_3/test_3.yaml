@@ -160,33 +160,21 @@ config:
         fn: "torch.nn.Conv2d"
         kwargs:
           in_channels: 32
-          out_channels: 64
+          out_channels: 128
           kernel_size: 3
           stride: 1
           padding: 0
           bias: True
-
       cnn_2:
         fn: "torch.nn.Conv2d"
         kwargs:
-          in_channels: 64
+          in_channels: 128
           out_channels: 64
           kernel_size: 3
           stride: 1
           padding: 0
           bias: True
-
       cnn_3:
-        fn: "torch.nn.Conv2d"
-        kwargs:
-          in_channels: 64
-          out_channels: 64
-          kernel_size: 3
-          stride: 1
-          padding: 0
-          bias: True
-
-      cnn_4:
         fn: "torch.nn.Conv2d"
         kwargs:
           in_channels: 64
@@ -200,13 +188,13 @@ config:
       linear_0:
         fn: "torch.nn.Linear"
         kwargs:
-          in_features: 1024 # 64 channels * 4 * 4 from the flattened output
-          out_features: 64
+          in_features: 64 # 64 channels * 4 * 4 from the flattened output
+          out_features: 32
           bias: True
       last:
         fn: "torch.nn.Linear"
         kwargs:
-          in_features: 64
+          in_features: 32
           out_features: 10
           bias: True
 
