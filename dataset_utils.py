@@ -6,6 +6,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 from torchvision import datasets, transforms
+from PIL import Image
 
 import utils as u
 
@@ -21,23 +22,19 @@ class AngleDataset(TensorDataset):
         is_positive_only=False,
     ):
 
-        assert isinstance(num_samples, int), (
-            f"num_samples must be an integer, not {type(num_samples)}"
-        )
-        assert num_samples > 0, (
-            f"num_samples must be greater than 0, not {num_samples}"
-        )
+        assert isinstance(
+            num_samples, int
+        ), f"num_samples must be an integer, not {type(num_samples)}"
+        assert num_samples > 0, f"num_samples must be greater than 0, not {num_samples}"
 
-        assert isinstance(num_targets, int), (
-            f"num_targets must be an integer, not {type(num_targets)}"
-        )
-        assert num_targets > 0, (
-            f"num_targets must be greater than 0, not {num_targets}"
-        )
+        assert isinstance(
+            num_targets, int
+        ), f"num_targets must be an integer, not {type(num_targets)}"
+        assert num_targets > 0, f"num_targets must be greater than 0, not {num_targets}"
 
-        assert isinstance(is_positive_only, bool), (
-            f"is_positive_only must be a boolean, not {type(is_positive_only)}"
-        )
+        assert isinstance(
+            is_positive_only, bool
+        ), f"is_positive_only must be a boolean, not {type(is_positive_only)}"
 
         def get_target(angle):
 
@@ -46,15 +43,11 @@ class AngleDataset(TensorDataset):
             if not is_positive_only:
                 if angle < 0:
                     angle = 180 + angle
-                target[
-                    int(angle / (180/num_targets))
-                ] = 1
+                target[int(angle / (180 / num_targets))] = 1
             else:
                 if angle > 45:
                     angle = angle - 45
-                target[
-                    int(angle / (45/num_targets))
-                ] = 1
+                target[int(angle / (45 / num_targets))] = 1
 
             return target
 
@@ -83,10 +76,10 @@ class AngleDataset(TensorDataset):
 
 
 def pre_dataset(dataset):
-    '''Unify the dataset to data (Tensor) and targets (Tensor).
-        This is for processing datasets in unified code.
-        Note that targets are idx instead of onehot.
-    '''
+    """Unify the dataset to data (Tensor) and targets (Tensor).
+    This is for processing datasets in unified code.
+    Note that targets are idx instead of onehot.
+    """
 
     if type(dataset) in [datasets.SVHN]:
         dataset.data = torch.Tensor(dataset.data)
@@ -94,9 +87,20 @@ def pre_dataset(dataset):
     elif type(dataset) in [datasets.CIFAR10, datasets.CIFAR100]:
         dataset.data = torch.Tensor(dataset.data)
         dataset.targets = torch.Tensor(dataset.targets)
+    elif type(dataset) in [datasets.Imagenette]:
+        data = []
+        targets = []
+        for path, target in dataset.samples:
+            image = Image.open(path).convert("RGB")
+            image = dataset.transform(image)
+            data.append(image)
+            targets.append(target)
 
-    assert hasattr(dataset, 'data')
-    assert hasattr(dataset, 'targets')
+        dataset.data = torch.stack(data)
+        dataset.targets = torch.tensor(targets)
+
+    assert hasattr(dataset, "data")
+    assert hasattr(dataset, "targets")
     assert isinstance(dataset.data, torch.Tensor)
     assert isinstance(dataset.targets, torch.Tensor)
 
@@ -108,9 +112,9 @@ def pre_dataset(dataset):
 
 
 def post_dataset(dataset):
-    '''Reverse of pre_dataset.
-        This converts dataset from the unified format to its original format.
-    '''
+    """Reverse of pre_dataset.
+    This converts dataset from the unified format to its original format.
+    """
 
     if type(dataset) in [datasets.SVHN]:
         dataset.data = dataset.data.byte().numpy()
@@ -122,13 +126,15 @@ def post_dataset(dataset):
     return dataset
 
 
-def partial_dateset_v1(dataset, partial_targets=None, partial_num=None, unlabelled_ratio=0.0):
+def partial_dateset_v1(
+    dataset, partial_targets=None, partial_num=None, unlabelled_ratio=0.0
+):
     """Select a subset of the dataset.
 
-        dataset: the original dataset to create the partial dataset from.
-        partial_targets: a list of targets (classes) to include in the partial dataset. If set to None, all targets will be included.
-        partial_num: the number of data points to include for each target in the partial dataset. If set to None, all data points for each target will be included.
-        unlabelled_ratio: a float value between 0.0 and 1.0 indicating the ratio of unlabelled data points to include in the partial dataset. Unlabelled data points are indicated with a target value of -1.
+    dataset: the original dataset to create the partial dataset from.
+    partial_targets: a list of targets (classes) to include in the partial dataset. If set to None, all targets will be included.
+    partial_num: the number of data points to include for each target in the partial dataset. If set to None, all data points for each target will be included.
+    unlabelled_ratio: a float value between 0.0 and 1.0 indicating the ratio of unlabelled data points to include in the partial dataset. Unlabelled data points are indicated with a target value of -1.
     """
 
     dataset = pre_dataset(dataset)
@@ -139,21 +145,19 @@ def partial_dateset_v1(dataset, partial_targets=None, partial_num=None, unlabell
         # None means not applied, so get all targets and set as partial_targets
         partial_targets = original_dataset_unique_targets
 
-    assert isinstance(partial_targets, list), 'partial_targets must be a list'
+    assert isinstance(partial_targets, list), "partial_targets must be a list"
     for partial_target in partial_targets:
-        assert partial_target in original_dataset_unique_targets, (
-            f'partial_targets must be a subset of the original dataset targets, but {partial_target} is not in the original dataset targets {original_dataset_unique_targets}'
-        )
+        assert (
+            partial_target in original_dataset_unique_targets
+        ), f"partial_targets must be a subset of the original dataset targets, but {partial_target} is not in the original dataset targets {original_dataset_unique_targets}"
 
-    assert (
-        isinstance(partial_num, int) and partial_num > 0
-    ) or (partial_num is None), f'partial_num must be a positive integer or None, but got {partial_num}'
+    assert (isinstance(partial_num, int) and partial_num > 0) or (
+        partial_num is None
+    ), f"partial_num must be a positive integer or None, but got {partial_num}"
 
-    assert isinstance(
-        unlabelled_ratio, float
-    ) and (0 <= unlabelled_ratio <= 1), (
-        f'unlabelled_ratio must be a float value between 0.0 and 1.0, but got {unlabelled_ratio}'
-    )
+    assert isinstance(unlabelled_ratio, float) and (
+        0 <= unlabelled_ratio <= 1
+    ), f"unlabelled_ratio must be a float value between 0.0 and 1.0, but got {unlabelled_ratio}"
 
     partial_target_num_targets = []
     partial_target_num_datas = []
@@ -161,13 +165,11 @@ def partial_dateset_v1(dataset, partial_targets=None, partial_num=None, unlabell
     for partial_target in partial_targets:
 
         # mask after applies partial_target
-        partial_target_mask = (dataset.targets == partial_target)
+        partial_target_mask = dataset.targets == partial_target
         # partial_target_mask: tensor([ True, False, False,  ..., False, False, False])
 
         # idx after applies partial_target
-        partial_target_idx = partial_target_mask.nonzero(
-            as_tuple=False
-        ).squeeze(1)
+        partial_target_idx = partial_target_mask.nonzero(as_tuple=False).squeeze(1)
         # partial_target_idx: tensor([    1,     2,     4,  ..., 59974, 59985, 59998])
 
         if partial_num is not None:
@@ -180,9 +182,7 @@ def partial_dateset_v1(dataset, partial_targets=None, partial_num=None, unlabell
 
         # idx after applies partial_num and partial_target
         partial_target_num_idx = partial_target_idx[
-            torch.randperm(
-                partial_target_idx.size()[0]
-            )[:partial_num_]
+            torch.randperm(partial_target_idx.size()[0])[:partial_num_]
         ]
         # partial_target_num_idx: tensor([43017, 45843, 43440,  3620, 25991,  6417, 40425, 38389,  5477, 46967,
         # 54384, 43164, 32175, 13065, 36788, 24928, 59168, 17996, 21545, 55107,
@@ -191,29 +191,23 @@ def partial_dateset_v1(dataset, partial_targets=None, partial_num=None, unlabell
         # 23990, 39825, 25863,  4492, 55385, 33223, 57882, 31879, 35712, 34674])
 
         # mask after applies partial_num and partial_target
-        partial_target_num_mask = torch.zeros(
-            dataset.targets.size()
-        ).bool().fill_(False)
+        partial_target_num_mask = (
+            torch.zeros(dataset.targets.size()).bool().fill_(False)
+        )
         partial_target_num_mask[partial_target_num_idx] = True
         # partial_target_num_mask: tensor([ True, False, False,  ..., False, False, False])
 
         # the targets selected by partial_target_num_mask
-        partial_target_num_target = dataset.targets[
-            partial_target_num_mask
-        ].clone()
-        partial_target_num_data = dataset.data[
-            partial_target_num_mask
-        ].clone()
+        partial_target_num_target = dataset.targets[partial_target_num_mask].clone()
+        partial_target_num_data = dataset.data[partial_target_num_mask].clone()
 
         if unlabelled_ratio > 0.0:
             # fill some targets with -1, indicating that they are unlabelled datapoints
             partial_target_num_target[
                 # these unlabelled datapoints are randomly selected
-                torch.randperm(
-                    partial_target_num_target.size(0)
-                )[
+                torch.randperm(partial_target_num_target.size(0))[
                     # the number of these unlabelled datapoints is determined by unlabelled_ratio
-                    :int(unlabelled_ratio * partial_target_num_target.size(0))
+                    : int(unlabelled_ratio * partial_target_num_target.size(0))
                 ]
             ] = -1.0
 
@@ -229,7 +223,9 @@ def partial_dateset_v1(dataset, partial_targets=None, partial_num=None, unlabell
     return dataset
 
 
-def partial_dateset(dataset, partial_targets=None, partial_num=-1, unlabelled_ratio=0.0):
+def partial_dateset(
+    dataset, partial_targets=None, partial_num=-1, unlabelled_ratio=0.0
+):
     """Use only part of the dataset.
 
     Args:
@@ -244,9 +240,7 @@ def partial_dateset(dataset, partial_targets=None, partial_num=-1, unlabelled_ra
         unlabelled_ratio (float): The ratio of unlabelled datapoints.
     """
 
-    logger.warning(
-        "partial_dateset is deprecated, use partial_dataset_v1 instead."
-    )
+    logger.warning("partial_dateset is deprecated, use partial_dataset_v1 instead.")
 
     dataset = pre_dataset(dataset)
 
@@ -266,20 +260,18 @@ def partial_dateset(dataset, partial_targets=None, partial_num=-1, unlabelled_ra
     for partial_target in partial_targets:
 
         # mask after applies partial_target
-        partial_target_mask = (dataset.targets == partial_target)
+        partial_target_mask = dataset.targets == partial_target
         # partial_target_mask: tensor([ True, False, False,  ..., False, False, False])
 
         # idx after applies partial_target
-        partial_target_idx = partial_target_mask.nonzero(
-            as_tuple=False
-        ).squeeze(1)
+        partial_target_idx = partial_target_mask.nonzero(as_tuple=False).squeeze(1)
         # partial_target_idx: tensor([    1,     2,     4,  ..., 59974, 59985, 59998])
 
         # idx after applies partial_num and partial_target
         partial_target_num_idx = partial_target_idx[
-            torch.randperm(
-                partial_target_idx.size()[0]
-            )[:partial_num if partial_num < partial_target_idx.size()[0] else -1]
+            torch.randperm(partial_target_idx.size()[0])[
+                : partial_num if partial_num < partial_target_idx.size()[0] else -1
+            ]
         ]
         # partial_target_num_idx: tensor([43017, 45843, 43440,  3620, 25991,  6417, 40425, 38389,  5477, 46967,
         # 54384, 43164, 32175, 13065, 36788, 24928, 59168, 17996, 21545, 55107,
@@ -288,26 +280,22 @@ def partial_dateset(dataset, partial_targets=None, partial_num=-1, unlabelled_ra
         # 23990, 39825, 25863,  4492, 55385, 33223, 57882, 31879, 35712, 34674])
 
         # mask after applies partial_num and partial_target
-        partial_target_num_mask = torch.zeros(
-            dataset.targets.size()
-        ).bool().fill_(False)
+        partial_target_num_mask = (
+            torch.zeros(dataset.targets.size()).bool().fill_(False)
+        )
         partial_target_num_mask[partial_target_num_idx] = True
         # partial_target_num_mask: tensor([ True, False, False,  ..., False, False, False])
 
         # the targets selected by partial_target_num_mask
-        partial_target_num_target = dataset.targets[
-            partial_target_num_mask
-        ].clone()
+        partial_target_num_target = dataset.targets[partial_target_num_mask].clone()
 
         if unlabelled_ratio > 0.0:
             # fill some targets with -1, indicating that they are unlabelled datapoints
             partial_target_num_target[
                 # these unlabelled datapoints are randomly selected
-                torch.randperm(
-                    partial_target_num_target.size(0)
-                )[
+                torch.randperm(partial_target_num_target.size(0))[
                     # the number of these unlabelled datapoints is determined by unlabelled_ratio
-                    :int(unlabelled_ratio * partial_target_num_target.size(0))
+                    : int(unlabelled_ratio * partial_target_num_target.size(0))
                 ]
             ] = -1.0
 
@@ -344,62 +332,61 @@ def map_dataset_targets(dataset, mapper=None):
         original_targets = dataset.targets.clone()
         for original_target in mapper.keys():
             mapped_target = mapper[original_target]
-            dataset.targets[
-                (original_targets == original_target)
-            ] = mapped_target
+            dataset.targets[(original_targets == original_target)] = mapped_target
 
         dataset = post_dataset(dataset)
 
         return dataset
 
 
-def data_loader_fn(dataset_name="XOR",
-                   train=True,
-                   download=False,
-                   # data
-                   data_image_size=28,
-                   data_is_gray=True,
-                   data_is_flatten=True,
-                   # target
-                   target_min=-0.1,
-                   target_max=1.0,
-                   # partial dataset
-                   partial_targets_num=10,
-                   partial_num=6000,
-                   # kwargs for DataLoader
-                   batch_size=4,
-                   shuffle=True,
-                   drop_last=True,
-                   num_workers=0,
-                   pin_memory=True,
-                   data_pil_transforms=[],
-                   ):
+def data_loader_fn(
+    dataset_name="XOR",
+    train=True,
+    download=False,
+    # data
+    data_image_size=28,
+    data_is_gray=True,
+    data_is_flatten=True,
+    # target
+    target_min=-0.1,
+    target_max=1.0,
+    # partial dataset
+    partial_targets_num=10,
+    partial_num=6000,
+    # kwargs for DataLoader
+    batch_size=4,
+    shuffle=True,
+    drop_last=True,
+    num_workers=0,
+    pin_memory=True,
+    data_pil_transforms=[],
+):
 
-    assert isinstance(dataset_name, str), (
-        f"dataset_name must be a str, but got {type(dataset_name)}."
-    )
-    assert isinstance(data_is_gray, bool), (
-        f"data_is_gray must be a bool, but got {type(data_is_gray)}."
-    )
-    assert isinstance(data_image_size, int), (
-        f"data_image_size must be a int, but got {type(data_image_size)}."
-    )
-    assert isinstance(target_min, (int, float)), (
-        f"target_min must be a int or float, but got {type(target_min)}."
-    )
-    assert isinstance(target_max, (int, float)), (
-        f"target_max must be a int or float, but got {type(target_max)}."
-    )
-    assert isinstance(partial_targets_num, int), (
-        f"partial_targets_num must be a int, but got {type(partial_targets_num)}."
-    )
-    assert isinstance(data_pil_transforms, list), (
-        f"data_pil_transforms must be a list, but got {type(data_pil_transforms)}."
-    )
+    assert isinstance(
+        dataset_name, str
+    ), f"dataset_name must be a str, but got {type(dataset_name)}."
+    assert isinstance(
+        data_is_gray, bool
+    ), f"data_is_gray must be a bool, but got {type(data_is_gray)}."
+    assert isinstance(
+        data_image_size, int
+    ), f"data_image_size must be a int, but got {type(data_image_size)}."
+    assert isinstance(
+        target_min, (int, float)
+    ), f"target_min must be a int or float, but got {type(target_min)}."
+    assert isinstance(
+        target_max, (int, float)
+    ), f"target_max must be a int or float, but got {type(target_max)}."
+    assert isinstance(
+        partial_targets_num, int
+    ), f"partial_targets_num must be a int, but got {type(partial_targets_num)}."
+    assert isinstance(
+        data_pil_transforms, list
+    ), f"data_pil_transforms must be a list, but got {type(data_pil_transforms)}."
 
-    if dataset_name in ['XOR']:
+    if dataset_name in ["XOR"]:
 
-        if dataset_name == 'XOR':
+        if dataset_name == "XOR":
 
             data = [
                 [-1, -1],
@@ -422,10 +409,10 @@ def data_loader_fn(dataset_name="XOR",
             torch.Tensor(target),
         )
 
-    elif dataset_name in ['MNIST', 'FashionMNIST', 'CIFAR10']:
+    elif dataset_name in ["MNIST", "FashionMNIST", "CIFAR10"]:
 
         transform = []
-        if dataset_name in ['CIFAR10']:
+        if dataset_name in ["CIFAR10"]:
             if data_is_gray:
                 transform.append(transforms.Grayscale())
         transform.append(transforms.Resize(data_image_size))
@@ -447,14 +434,12 @@ def data_loader_fn(dataset_name="XOR",
         )
 
         dataset = partial_dateset_v1(
-            eval(
-                'datasets.{}'.format(dataset_name)
-            )(
-                os.environ.get('DATA_DIR'),
+            eval("datasets.{}".format(dataset_name))(
+                os.environ.get("DATA_DIR"),
                 train=train,
                 download=download,
                 transform=transforms.Compose(transform),
-                target_transform=transforms.Compose(target_transform)
+                target_transform=transforms.Compose(target_transform),
             ),
             partial_num=partial_num,
             partial_targets=list(range(partial_targets_num)),
