@@ -44,29 +44,27 @@ config:
 
   # exec-code before/after the setup of the specified Trainable
   before_DatasetLearningTrainable_setup_code: |-
+    from CustomDataset import CustomDataset
     def data_loader_fn(dataset, train, batch_size, partial_num=-1):
         
-        transform = []
-        transform.append(transforms.ToTensor())
+        transform = transforms.Compose([
+        transforms.Resize((32, 32)),  # Resize all images to 32x32
+            transforms.ToTensor(),
+        ])
 
-        target_transform = []
-        target_transform.append(
-            transforms.Lambda(
-                lambda idx: utils.np_idx2onehot(idx, 10)
-            )
+        target_transform = transforms.Lambda(
+            lambda idx: torch.eye(10)[idx]  # Assuming 10 classes
         )
 
 
         return DataLoader(
             dataset_utils.partial_dateset(
-            datasets.Imagenette(
-            root=f'/content/drive/MyDrive/advanced_ai_project/RESULTS_DIR/imagenette2', 
-            split=f'{"train" if train else "val"}', 
-            # train=True,
-            download=False, 
-            transform=transforms.Compose(transform),
-            target_transform=transforms.Compose(target_transform)
-    ),
+                CustomDataset(
+                    root="/content/drive/MyDrive/advanced_ai_project/RESULTS_DIR/imagenette2",
+                    train=train,
+                    transform=transform,
+                    target_transform=target_transform
+),
                 partial_num=partial_num,
             ),
             batch_size=batch_size,

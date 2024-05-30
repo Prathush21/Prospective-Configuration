@@ -84,20 +84,13 @@ def pre_dataset(dataset):
     if type(dataset) in [datasets.SVHN]:
         dataset.data = torch.Tensor(dataset.data)
         dataset.targets = torch.Tensor(dataset.labels)
-    elif type(dataset) in [datasets.CIFAR10, datasets.CIFAR100]:
+    elif type(dataset) in [
+        datasets.CIFAR10,
+        datasets.CIFAR100,
+        datasets.vision.VisionDataset,
+    ]:
         dataset.data = torch.Tensor(dataset.data)
         dataset.targets = torch.Tensor(dataset.targets)
-    elif type(dataset) in [datasets.Imagenette]:
-        data = []
-        targets = []
-        for path, target in dataset._samples:
-            image = Image.open(path).convert("RGB")
-            image = dataset.transform(image)
-            data.append(image)
-            targets.append(target)
-
-        dataset.data = torch.stack(data)
-        dataset.targets = torch.tensor(targets)
 
     assert hasattr(dataset, "data")
     assert hasattr(dataset, "targets")
@@ -119,7 +112,11 @@ def post_dataset(dataset):
     if type(dataset) in [datasets.SVHN]:
         dataset.data = dataset.data.byte().numpy()
         dataset.labels = dataset.targets.long().numpy()
-    elif type(dataset) in [datasets.CIFAR10, datasets.CIFAR100]:
+    elif type(dataset) in [
+        datasets.CIFAR10,
+        datasets.CIFAR100,
+        datasets.vision.VisionDataset,
+    ]:
         dataset.data = dataset.data.byte().numpy()
         dataset.targets = dataset.targets.long().tolist()
 
