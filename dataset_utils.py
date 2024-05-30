@@ -7,6 +7,7 @@ import torch
 from torch.utils.data import DataLoader, TensorDataset
 from torchvision import datasets, transforms
 from PIL import Image
+from experiments.test_2.CustomDataset import CustomDataset
 
 import utils as u
 
@@ -84,11 +85,9 @@ def pre_dataset(dataset):
     if type(dataset) in [datasets.SVHN]:
         dataset.data = torch.Tensor(dataset.data)
         dataset.targets = torch.Tensor(dataset.labels)
-    elif type(dataset) in [
-        datasets.CIFAR10,
-        datasets.CIFAR100,
-        datasets.vision.VisionDataset,
-    ]:
+    elif type(dataset) in [datasets.CIFAR10, datasets.CIFAR100, CustomDataset]:
+        for i in range(100):
+            print(len(dataset.data[i]))
         dataset.data = torch.Tensor(dataset.data)
         dataset.targets = torch.Tensor(dataset.targets)
 
@@ -115,7 +114,7 @@ def post_dataset(dataset):
     elif type(dataset) in [
         datasets.CIFAR10,
         datasets.CIFAR100,
-        datasets.vision.VisionDataset,
+        CustomDataset,
     ]:
         dataset.data = dataset.data.byte().numpy()
         dataset.targets = dataset.targets.long().tolist()
