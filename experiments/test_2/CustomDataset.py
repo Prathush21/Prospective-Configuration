@@ -6,6 +6,7 @@ from PIL import Image
 from torchvision.datasets.vision import VisionDataset
 import torch
 from torchvision import transforms
+import cv2
 
 
 class CustomDataset(VisionDataset):
@@ -60,7 +61,9 @@ class CustomDataset(VisionDataset):
                         img = Image.open(path).convert(
                             "RGB"
                         )  # Ensure image is in RGB format
-                        img = np.array(img, dtype=np.uint8)  # Ensure image is uint8
+                        img = img.resize((32, 32))  # Ensure image is uint8
+                        img = np.array(img, dtype=np.float32) / 255.0
+                        img = torch.tensor(img)
                         data.append(img)
                         targets.append(class_index)
                     except Exception as e:
@@ -82,11 +85,9 @@ class CustomDataset(VisionDataset):
             raise
 
         if self.transform is not None:
-            print("Applying transform...")
 
             img = self.transform(img)
         if self.target_transform is not None:
-            print("Applying target transform...")
 
             target = self.target_transform(target)
 

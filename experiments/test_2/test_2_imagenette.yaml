@@ -36,7 +36,7 @@ config:
         )
 
         return DataLoader(
-            dataset_utils.partial_dateset(
+            dataset_utils_imagenette.partial_dateset(
                 CustomDataset(
                     root="/content/drive/MyDrive/advanced_ai_project/RESULTS_DIR/imagenette2",
                     train=train,
@@ -139,7 +139,7 @@ config:
       linear_0:
         fn: "torch.nn.Linear"
         kwargs:
-          in_features: 50176 # 64 * 28 * 28 (calculate based on final conv layer output size)
+          in_features: 1024 # 64 * 28 * 28 (calculate based on final conv layer output size)
           out_features: 64
           bias: True
       last:
