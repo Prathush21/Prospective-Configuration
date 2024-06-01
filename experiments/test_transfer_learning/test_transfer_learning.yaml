@@ -46,10 +46,10 @@ config:
   before_DatasetLearningTrainable_setup_code: |-
     def data_loader_fn(dataset, train, batch_size, partial_num=-1):
         
-        transform = transforms.Compose([
+        transform = [
             transforms.Resize((227, 227)),
-            transforms.ToTensor(),
-        ])
+            transforms.ToTensor()
+        ]
 
         target_transform = []
         target_transform.append(
