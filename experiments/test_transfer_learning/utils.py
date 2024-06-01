@@ -41,7 +41,7 @@ def create_model(
                 if cnn_key not in  ["cnn_2", "cnn_3"]:
                     model_ = torch.nn.MaxPool2d(kernel_size=3, stride=2, padding=0)
             elif model_type == "Dropout":
-                pass
+                continue
             else:
                 raise ValueError("model_type not found")
             model.append(model_)

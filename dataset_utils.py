@@ -86,8 +86,6 @@ def pre_dataset(dataset):
         dataset.data = torch.Tensor(dataset.data)
         dataset.targets = torch.Tensor(dataset.labels)
     elif type(dataset) in [datasets.CIFAR10, datasets.CIFAR100, CustomDataset]:
-        for i in range(100):
-            print(len(dataset.data[i]))
         dataset.data = torch.Tensor(dataset.data)
         dataset.targets = torch.Tensor(dataset.targets)
 
