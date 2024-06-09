@@ -7,9 +7,9 @@ resources_per_trial:
   cpu: 2
   # gpu: "fit_cpu"
   # debug
-  # gpu: 1
+  gpu: 1
   # debug
-  gpu: 0
+  # gpu: 0
 stop:
   is_num_iterations_reached: 1
 # max_failures: -1 # keep retry if fail, it could be recourses shortage, not recommended as it produces lots of log files
@@ -20,9 +20,9 @@ checkpoint_at_end: False
 config:
   version: 1.3
 
-  #device: "torch.device('cuda')"
+  device: "torch.device('cuda')"
   # debug
-  device: "torch.device('cpu')"
+  # device: "torch.device('cpu')"
 
   seed:
     grid_search:
@@ -34,7 +34,7 @@ config:
   # debug
   num_iterations: 20
 
-  dataset: Imagenette
+  dataset: CIFAR10
 
   #partial_num: 5000
   # debug
@@ -44,25 +44,28 @@ config:
 
   # exec-code before/after the setup of the specified Trainable
   before_DatasetLearningTrainable_setup_code: |-
-    from experiments.test_2.CustomDataset import CustomDataset
-
     def data_loader_fn(dataset, train, batch_size, partial_num=-1):
-        transform = transforms.Compose([
-            transforms.Resize((32, 32)),
-            transforms.ToTensor(),
-        ])
+        
+        transform = []
+        transform.append(transforms.ToTensor())
 
-        target_transform = transforms.Lambda(
-            lambda idx: torch.eye(10)[idx]
+        target_transform = []
+        target_transform.append(
+            transforms.Lambda(
+                lambda idx: utils.np_idx2onehot(idx, 10)
+            )
         )
 
         return DataLoader(
-            dataset_utils_imagenette.partial_dateset(
-                CustomDataset(
-                    root="/content/drive/MyDrive/advanced_ai_project/RESULTS_DIR/imagenette2",
+            dataset_utils.partial_dateset(
+                eval(
+                    'datasets.{}'.format(dataset)
+                )(
+                    '/content/drive/MyDrive/advanced_ai_project/RESULTS_DIR',
                     train=train,
-                    transform=transform,
-                    target_transform=target_transform
+                    download=True,
+                    transform=transforms.Compose(transform),
+                    target_transform=transforms.Compose(target_transform)
                 ),
                 partial_num=partial_num,
             ),
@@ -98,7 +101,7 @@ config:
   predictive_coding:
     grid_search:
       - True
-      #- False
+      # - False
 
   PCTrainer_kwargs:
     update_x_at: "all"
@@ -257,7 +260,7 @@ config:
     # import
     import predictive_coding as pc
     import torch.optim as optim
-    import experiments.test_2.test_1_utils as u
+    import experiments.nature_cnn_v2.utils as u
 
     # create model
     self.model = u.create_model(
