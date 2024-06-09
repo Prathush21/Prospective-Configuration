@@ -141,7 +141,13 @@ config:
 
   model:
     acf: "torch.nn.ReLU"
-    model_type_order: "['Weights', 'BatchNorm', 'Acf', 'Dropout', 'PCLayer', 'Pool']"
+    model_type_order:
+      grid_search:
+        - "['Weights' 'PCLayer', 'BatchNorm', 'Acf', 'Dropout','Pool']"
+        - "['Weights', 'BatchNorm', 'PCLayer', 'Acf', 'Dropout', 'Pool']"
+        - "['Weights', 'BatchNorm', 'Acf', 'PCLayer', 'Dropout', 'Pool']"
+        - "['Weights', 'BatchNorm', 'Acf', 'Dropout', 'PCLayer', 'Pool']"
+        - "['Weights', 'BatchNorm', 'Acf', 'Dropout', 'Pool', 'PCLayer',]"
     cnn_layers:
       conv_0:
         fn: "torch.nn.Conv2d"
